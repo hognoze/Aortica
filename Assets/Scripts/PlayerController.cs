@@ -1,3 +1,4 @@
+using Unity.Cinemachine;
 using UnityEngine;
 
 
@@ -9,6 +10,8 @@ public class PlayerController : MonoBehaviour
     private float playerSpeed = 5.0f;
     [SerializeField]
     private float gravityValue = -9.81f;
+    [SerializeField]
+    private float camSensitivity = 1f;
 
     private CharacterController controller;
     private Vector3 playerVelocity;
@@ -16,6 +19,7 @@ public class PlayerController : MonoBehaviour
     private InputManager inputManager;
     private Transform cameraTransform;
 
+    public CinemachineCamera sensCam;
 
     private void Start()
     {
@@ -25,10 +29,10 @@ public class PlayerController : MonoBehaviour
 
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
+
     }
 
-
-    void Update()
+    private void Update()
     {
         groundedPlayer = controller.isGrounded;
         if (groundedPlayer && playerVelocity.y < 0)
@@ -46,16 +50,16 @@ public class PlayerController : MonoBehaviour
         move.y = 0f;
         // another precaution to make sure the player stays on the ground unless falling/ jumping.
 
-        //if (move != Vector3.zero)
-        //{
-        //    transform.forward = move;
-        //}
-        // move in the faced direction (need to define what 'forawrd' is).
-
         playerVelocity.y += gravityValue * Time.deltaTime;
 
         // Combine horizontal and vertical movement
         Vector3 finalMove = (move * playerSpeed) + (playerVelocity.y * Vector3.up);
         controller.Move(finalMove * Time.deltaTime);
+
+
+        sensCam.m_XAxis.m_MaxSpeed = 2 * camSensitivity;
+        sensCam.m_YAxis.m_MaxSpeed = 2 * camSensitivity;
+
+
     }
 } 
