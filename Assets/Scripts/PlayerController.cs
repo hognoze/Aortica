@@ -1,65 +1,66 @@
-using Unity.Cinemachine;
 using UnityEngine;
+using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.Controls;
 
+[RequireComponent(typeof(CharacterController), typeof(PlayerInput))]
+//this script will only work if the object has a CC and PI 
 
-[RequireComponent(typeof(CharacterController))]
-// only executes the following if on a component with a chara controller.
 public class PlayerController : MonoBehaviour
 {
     [SerializeField]
     private float playerSpeed = 5.0f;
     [SerializeField]
     private float gravityValue = -9.81f;
-    [SerializeField]
-    private float camSensitivity = 1f;
 
-    private CharacterController controller;
+    public CharacterController controller;
     private Vector3 playerVelocity;
     private bool groundedPlayer;
-    private InputManager inputManager;
-    private Transform cameraTransform;
 
-    public CinemachineCamera sensCam;
 
-    private void Start()
+    public InputActionReference moveAction;
+    public InputActionReference aimAction;
+    public InputActionReference sprintAction;
+    public InputActionReference attackAction;
+    public InputActionReference interactAction;
+
+
+    private void OnEnable()
     {
-        controller = GetComponent<CharacterController>();
-        inputManager = InputManager.Instance;
-        cameraTransform = Camera.main.transform;
-
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
-
+        moveAction.action.Enable();
     }
 
-    private void Update()
+    private void OnDisable()
+    {
+        moveAction.action.Disable();
+    }
+
+    // to toggle movement, e.g. if entering a pause menu
+
+    void Update()
     {
         groundedPlayer = controller.isGrounded;
-        if (groundedPlayer && playerVelocity.y < 0)
+
+        if (groundedPlayer)
         {
-            playerVelocity.y = 0f;
+            if (playerVelocity.y < -2f)
+                playerVelocity.y = -2f;
         }
-        // velocity is the rate of player falling, so this doesnt execute if the player is 'grounded'.
+    // gravity!
 
 
-        Vector2 movement = inputManager.GetPlayerMovement();
-        Vector3 move = new Vector3(movement.x, 0f, movement.y);
-        // converts the vector 2 into a vector3, where '0f' is defined as how high off the ground the player is.
+        Vector2 input = moveAction.action.ReadValue<Vector2>();
+        Vector3 move = new Vector3(input.x, 0, input.y);
+        move = Vector3.ClampMagnitude(move, 1f);
+    // use the vec2 to create a new vec3 where vertical movement it locked to 0 (change for jumping)
 
-        move = cameraTransform.forward * move.z + cameraTransform.right * move.x;
-        move.y = 0f;
-        // another precaution to make sure the player stays on the ground unless falling/ jumping.
-
-        playerVelocity.y += gravityValue * Time.deltaTime;
-
-        // Combine horizontal and vertical movement
-        Vector3 finalMove = (move * playerSpeed) + (playerVelocity.y * Vector3.up);
+        if (move != Vector3.zero)
+            transform.forward = move;
+    // move based on facing direction
+    
+        Vector3 finalMove = move * playerSpeed + Vector3.up * playerVelocity.y;
         controller.Move(finalMove * Time.deltaTime);
-
-
-        sensCam.m_XAxis.m_MaxSpeed = 2 * camSensitivity;
-        sensCam.m_YAxis.m_MaxSpeed = 2 * camSensitivity;
+    // final execution that takes into account the custom speed variable
 
 
     }
-} 
+}

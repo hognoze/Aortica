@@ -152,18 +152,18 @@ MonoBehaviour:
     m_Value: 0.2
   m_Noise:
     m_OverrideState: 1
-    m_Value: 5
+    m_Value: 4
   m_NoiseAlpha:
     m_OverrideState: 1
     m_Value: 0.1
   m_Jolt:
     m_OverrideState: 1
-    m_Value: 0.025
+    m_Value: 0.015
   m_Fps:
     m_OverrideState: 0
     m_Value: 16
   m_Vignette:
-    m_OverrideState: 1
+    m_OverrideState: 0
     m_Value: {r: 0, g: 0, b: 0, a: 0.4627451}
   m_GrainTex:
     m_OverrideState: 0
