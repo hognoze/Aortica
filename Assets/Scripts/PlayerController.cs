@@ -8,13 +8,18 @@ using UnityEngine.InputSystem.Controls;
 public class PlayerController : MonoBehaviour
 {
     [SerializeField]
-    private float playerSpeed = 5.0f;
+    private float playerSpeed = 3.0f;
+    //[SerializeField]
+    //private float sprintSpeed = 5f;
     [SerializeField]
     private float gravityValue = -9.81f;
+    [SerializeField]
+    private float rotationSpeed = 5f;
 
     public CharacterController controller;
     private Vector3 playerVelocity;
     private bool groundedPlayer;
+    private Transform cameraTransform;
 
 
     public InputActionReference moveAction;
@@ -23,6 +28,11 @@ public class PlayerController : MonoBehaviour
     public InputActionReference attackAction;
     public InputActionReference interactAction;
 
+
+    private void Start()
+    {
+        cameraTransform = Camera.main.transform;
+    }
 
     private void OnEnable()
     {
@@ -33,34 +43,36 @@ public class PlayerController : MonoBehaviour
     {
         moveAction.action.Disable();
     }
-
-    // to toggle movement, e.g. if entering a pause menu
+// to toggle movement, e.g. if entering a pause menu
 
     void Update()
     {
         groundedPlayer = controller.isGrounded;
-
-        if (groundedPlayer)
+        if (groundedPlayer && playerVelocity.y < 0f)
         {
-            if (playerVelocity.y < -2f)
-                playerVelocity.y = -2f;
+            playerVelocity.y = -2f;
         }
-    // gravity!
+
+        playerVelocity.y += gravityValue * Time.deltaTime;
+// gravity
 
 
         Vector2 input = moveAction.action.ReadValue<Vector2>();
         Vector3 move = new Vector3(input.x, 0, input.y);
-        move = Vector3.ClampMagnitude(move, 1f);
-    // use the vec2 to create a new vec3 where vertical movement it locked to 0 (change for jumping)
 
-        if (move != Vector3.zero)
-            transform.forward = move;
-    // move based on facing direction
-    
-        Vector3 finalMove = move * playerSpeed + Vector3.up * playerVelocity.y;
-        controller.Move(finalMove * Time.deltaTime);
-    // final execution that takes into account the custom speed variable
+        move = move.x * cameraTransform.right + move.z * cameraTransform.forward;
+        move.y = 0f;
 
+        controller.Move(move * Time.deltaTime * playerSpeed);
+// use the vec2 to create a new vec3 where vertical movement it locked to 0 (change for jumping)
+
+
+        controller.Move(playerVelocity * Time.deltaTime);
+// final execution that takes into account the custom speed variable
+
+
+        Quaternion targetRotation = Quaternion.Euler(0, cameraTransform.eulerAngles.y, 0);
+        transform.rotation = Quaternion.Lerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
 
     }
 }
